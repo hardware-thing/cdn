@@ -1,13 +1,9 @@
 use notify::{watcher, RecursiveMode, Watcher};
-use std::{
-    collections::HashMap,
-    env,
-    path::Path,
-    sync::{mpsc::channel, Arc, RwLock},
-    time::Duration,
-};
+use std::{env, path::Path, sync::mpsc::channel, time::Duration};
 
-pub fn watch(_cache: Arc<RwLock<HashMap<String, String>>>) {
+use crate::cache::Cache;
+
+pub fn watch(_cache: Cache) {
     let (sender, receiver) = channel();
 
     let mut watcher =
@@ -18,7 +14,7 @@ pub fn watch(_cache: Arc<RwLock<HashMap<String, String>>>) {
 
     watcher
         .watch(
-            styles_dir.to_str().unwrap_or("./styled"),
+            styles_dir.to_str().unwrap_or("./styles"),
             RecursiveMode::Recursive,
         )
         .unwrap();
@@ -26,7 +22,7 @@ pub fn watch(_cache: Arc<RwLock<HashMap<String, String>>>) {
     loop {
         match receiver.recv() {
             Ok(_) => println!("biuldin"),
-            Err(error) => println!("Error: {:?}", error),
+            Err(error) => println!("File event error: {:?}", error),
         }
     }
 }

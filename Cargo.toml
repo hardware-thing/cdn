@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 notify = "4.0.15"
 rocket = { git = "https://github.com/SergioBenitez/Rocket" }
+rocket_contrib = { git = "https://github.com/SergioBenitez/Rocket" }
