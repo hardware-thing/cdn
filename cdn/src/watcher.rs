@@ -1,35 +1,28 @@
 use notify::{watcher, RecursiveMode, Watcher};
-use std::{env, path::Path, sync::mpsc::channel, time::Duration};
+use std::{sync::mpsc::channel, time::Duration};
 
 use crate::cache::{self, Cache};
 
-pub fn watch(cache: Cache) {
+pub fn watch(styles_dir: String, cache: Cache) {
     let (sender, receiver) = channel();
 
     let mut watcher =
         watcher(sender, Duration::from_secs(10)).expect("Could not start filesystem watcher.");
-    let styles_dir = env::current_dir()
-        .expect("Current directory path is invalid.")
-        .join(Path::new("styles"));
-
     watcher
-        .watch(
-            styles_dir.to_str().unwrap_or("./styles"),
-            RecursiveMode::Recursive,
-        )
-        .unwrap();
+        .watch(styles_dir.clone(), RecursiveMode::Recursive)
+        .expect("Could not start watcher.");
 
     loop {
         match receiver.recv() {
-            Ok(_) => update_cache(&cache),
+            Ok(_) => update_cache(styles_dir.clone(), &cache),
             Err(error) => println!("File event error: {:?}", error),
         }
     }
 }
 
-fn update_cache(cache: &Cache) {
+fn update_cache(styles_dir: String, cache: &Cache) {
     match cache.try_write() {
-        Ok(mut lock) => *lock = cache::compile(),
+        Ok(mut lock) => *lock = cache::compile(styles_dir.clone()),
         Err(_) => {}
     }
 }

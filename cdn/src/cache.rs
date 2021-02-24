@@ -8,10 +8,10 @@ use std::{
 
 pub type Cache = Arc<RwLock<HashMap<String, String>>>;
 
-pub fn compile() -> HashMap<String, String> {
+pub fn compile(styles_dir: String) -> HashMap<String, String> {
     let mut compiled = HashMap::new();
 
-    let paths: Vec<String> = get_files(PathBuf::from("./styles"))
+    let paths: Vec<String> = get_files(PathBuf::from(styles_dir))
         .iter()
         .filter_map(|path| path.to_str().map(|path| path.to_string()))
         .collect();

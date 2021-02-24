@@ -3,6 +3,7 @@ extern crate rocket;
 
 use rocket::{http::ContentType, response::Response, State};
 use std::{
+    env,
     io::Cursor,
     sync::{Arc, RwLock},
     thread,
@@ -21,7 +22,15 @@ fn query_to_paths(components: String) -> Vec<String> {
         .collect();
 
     for fragment in fragments {
-         
+        if fragment.contains("|") {
+            if let [parent, subs] = fragment.rsplitn(2, ":").collect::<Vec<&str>>()[..] {
+                for sub in subs.split("|") {
+                    files.push(parent.to_string() + ":" + sub);
+                }
+            }
+        } else {
+            files.push(fragment);
+        }
     }
 
     files
@@ -70,11 +79,16 @@ fn list(cache: State<'_, Cache>) -> String {
 
 #[launch]
 fn rocket() -> rocket::Rocket {
-    let cache: Cache = Arc::new(RwLock::new(cache::compile()));
+    let styles_dir = env::var_os("STYLES_DIR")
+        .map(|dir| dir.to_str().map(|path| path.to_owned()))
+        .flatten()
+        .unwrap_or("./styles".to_string());
+
+    let cache: Cache = Arc::new(RwLock::new(cache::compile(styles_dir.clone())));
 
     // Spawn the file watcher to recompile on change
     let watcher_cache = cache.clone();
-    thread::spawn(move || watcher::watch(watcher_cache));
+    thread::spawn(move || watcher::watch(styles_dir, watcher_cache));
 
     rocket::ignite()
         .mount("/v1", routes![css, list])
