@@ -1,0 +1,13 @@
+{
+  "name": "sekond-builder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/welikefood/sekond.git",
+  "author": "Michal Janočko",
+  "license": "MIT",
+  "devDependencies": {
+    "elm-hot": "^1.1.6",
+    "node-elm-compiler": "^5.0.5",
+    "parcel": "^1.12.4"
+  }
+}
