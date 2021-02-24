@@ -13,12 +13,23 @@ use crate::cache::Cache;
 mod cache;
 mod watcher;
 
-#[get("/css?<components>")]
-fn css(components: String, cache: State<'_, Cache>) -> Response {
-    let files: Vec<String> = components
-        .split("-")
+fn query_to_paths(components: String) -> Vec<String> {
+    let mut files = vec![];
+    let fragments: Vec<String> = components
+        .split(",")
         .map(|file| file.replace(":", "/").to_string())
         .collect();
+
+    for fragment in fragments {
+         
+    }
+
+    files
+}
+
+#[get("/css?<components>")]
+fn css(components: String, cache: State<'_, Cache>) -> Response {
+    let files = query_to_paths(components);
     let mut css = String::new();
 
     if let Ok(lock) = cache.try_read() {
@@ -26,7 +37,10 @@ fn css(components: String, cache: State<'_, Cache>) -> Response {
             css += (*lock)
                 .get(&file)
                 .map(|content| content.as_str())
-                .unwrap_or("");
+                .unwrap_or_else(|| {
+                    eprintln!("`css`: Cannot acquire `cache` RwLock; it might be poisoned.");
+                    ""
+                });
         }
     }
 
@@ -48,7 +62,7 @@ fn list(cache: State<'_, Cache>) -> String {
             keys.join("\n")
         }
         Err(_) => {
-            println!("Could not acquire lock on cache");
+            println!("`list`: Could not acquire lock on cache");
             String::new()
         }
     }
@@ -63,6 +77,6 @@ fn rocket() -> rocket::Rocket {
     thread::spawn(move || watcher::watch(watcher_cache));
 
     rocket::ignite()
-        .mount("/", routes![css, list])
+        .mount("/v1", routes![css, list])
         .manage(cache)
 }
