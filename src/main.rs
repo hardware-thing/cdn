@@ -3,7 +3,6 @@ extern crate rocket;
 
 use rocket::{http::ContentType, response::Response, State};
 use std::{
-    collections::HashMap,
     sync::{Arc, RwLock},
     thread,
 };
@@ -24,8 +23,9 @@ fn css(components: String, _cache: State<'_, Cache>) -> Response {
 
 #[launch]
 fn rocket() -> rocket::Rocket {
-    let cache: Cache = Arc::new(RwLock::new(HashMap::new()));
+    let cache: Cache = Arc::new(RwLock::new(cache::compile()));
 
+    // Spawn the file watcher to recompile on change
     let watcher_cache = cache.clone();
     thread::spawn(move || watcher::watch(watcher_cache));
 

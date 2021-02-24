@@ -1,9 +1,9 @@
 use notify::{watcher, RecursiveMode, Watcher};
 use std::{env, path::Path, sync::mpsc::channel, time::Duration};
 
-use crate::cache::Cache;
+use crate::cache::{self, Cache};
 
-pub fn watch(_cache: Cache) {
+pub fn watch(cache: Cache) {
     let (sender, receiver) = channel();
 
     let mut watcher =
@@ -21,8 +21,15 @@ pub fn watch(_cache: Cache) {
 
     loop {
         match receiver.recv() {
-            Ok(_) => println!("biuldin"),
+            Ok(_) => update_cache(&cache),
             Err(error) => println!("File event error: {:?}", error),
         }
+    }
+}
+
+fn update_cache(cache: &Cache) {
+    match cache.try_write() {
+        Ok(mut lock) => *lock = cache::compile(),
+        Err(_) => {}
     }
 }
