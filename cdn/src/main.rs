@@ -2,6 +2,7 @@
 extern crate rocket;
 
 use rocket::{http::ContentType, response::Response, State};
+use rocket_contrib::serve;
 use std::{
     env,
     io::Cursor,
@@ -92,5 +93,6 @@ fn rocket() -> rocket::Rocket {
 
     rocket::ignite()
         .mount("/v1", routes![css, list])
+        .mount("/", serve::StaticFiles::from("./builder/dist/"))
         .manage(cache)
 }
