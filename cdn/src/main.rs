@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
+use console::style;
 use rocket::{http::ContentType, response::Response, State};
 use rocket_contrib::serve;
 use std::{
@@ -80,6 +81,29 @@ fn list(cache: State<'_, Cache>) -> String {
 
 #[launch]
 fn rocket() -> rocket::Rocket {
+    // Pretty panics
+    std::panic::set_hook(Box::new(|info| {
+        if let Some(payload) = info.payload().downcast_ref::<&str>() {
+            println!("{} {}", style("Error:").red().bold(), style(payload).red());
+        } else {
+            if let Some(location) = info.location() {
+                println!(
+                    "{} {}:{}:{}",
+                    style("Error occured at").red().bold(),
+                    location.file(),
+                    location.line(),
+                    location.column()
+                );
+            } else {
+                println!(
+                    "{}{}",
+                    style("Error occured ").red().bold(),
+                    style("but I do not know where…").red()
+                );
+            }
+        }
+    }));
+
     let styles_dir = env::var_os("STYLES_DIR")
         .map(|dir| dir.to_str().map(|path| path.to_owned()))
         .flatten()
