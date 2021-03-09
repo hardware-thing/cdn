@@ -18,10 +18,7 @@ mod watcher;
 
 fn query_to_paths(components: String) -> Vec<String> {
     let mut files = vec![];
-    let fragments: Vec<String> = components
-        .split(",")
-        .map(|file| file.replace(":", "/").to_string())
-        .collect();
+    let fragments: Vec<String> = components.split(",").map(|file| file.to_string()).collect();
 
     for fragment in fragments {
         if fragment.contains("|") {
@@ -41,24 +38,23 @@ fn query_to_paths(components: String) -> Vec<String> {
 #[get("/css?<components>")]
 fn css(components: String, cache: State<'_, Cache>) -> Response {
     let files = query_to_paths(components);
-    let mut css = String::new();
 
     if let Ok(lock) = cache.try_read() {
+        let mut css = String::new();
+        println!("{:?}", *lock);
         for file in files {
-            css += (*lock)
-                .get(&file)
-                .map(|content| content.as_str())
-                .unwrap_or_else(|| {
-                    eprintln!("`css`: Cannot acquire `cache` RwLock; it might be poisoned.");
-                    ""
-                });
+            println!("{}", file);
+            css += (*lock).get(file.as_str()).unwrap_or(&"".to_string());
         }
-    }
 
-    Response::build()
-        .header(ContentType::CSS)
-        .sized_body(css.len(), Cursor::new(css))
-        .finalize()
+        Response::build()
+            .header(ContentType::CSS)
+            .sized_body(css.len(), Cursor::new(css))
+            .finalize()
+    } else {
+        eprintln!("`css`: Cannot acquire `cache` RwLock; it might be poisoned.");
+        Response::build().finalize()
+    }
 }
 
 #[get("/list")]
@@ -67,7 +63,7 @@ fn list(cache: State<'_, Cache>) -> String {
         Ok(lock) => {
             let mut keys = (*lock)
                 .keys()
-                .map(|k| k.replace("/", ":").to_owned())
+                .map(|k| k.to_owned())
                 .collect::<Vec<String>>();
             keys.sort();
             keys.join("\n")
