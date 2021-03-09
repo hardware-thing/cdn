@@ -10,18 +10,17 @@ use std::{
 pub type Cache = Arc<RwLock<HashMap<String, String>>>;
 
 pub fn compile(styles_dir: String) -> HashMap<String, String> {
-    let gitignore_path = PathBuf::from(styles_dir.clone())
+    let styles_dir_path = PathBuf::from(styles_dir.clone())
         .canonicalize()
-        .unwrap_or(PathBuf::from(format!("/sekond/{}", styles_dir)))
-        .join(".gitignore");
+        .unwrap_or(PathBuf::from(format!("/sekond/{}", styles_dir)));
 
-    let pathbufs: Vec<PathBuf> = match gitignore::File::new(&gitignore_path)
+    let pathbufs: Vec<PathBuf> = match gitignore::File::new(&styles_dir_path.join(".gitignore"))
         .map(|gitignore_file| gitignore_file.included_files())
     {
         // Found .gitignore and getting files succeeded
         Ok(Ok(included_files)) => included_files,
         // Something went wrong so use everything
-        _ => get_files(PathBuf::from(styles_dir)),
+        _ => get_files(PathBuf::from(styles_dir.clone())),
     };
 
     let paths: Vec<String> = pathbufs
@@ -55,7 +54,10 @@ pub fn compile(styles_dir: String) -> HashMap<String, String> {
         ) {
             Ok(css) => {
                 compiled.insert(
-                    path.trim_start_matches("./styles/")
+                    path.trim_start_matches(&styles_dir_path.display().to_string()) // Remove absolute path
+                        .trim_start_matches("./styles/") // Relative path too
+                        .trim_start_matches(".")
+                        .trim_start_matches("/")
                         .trim_end_matches(".scss")
                         .replace("/", ":")
                         .to_string(),
