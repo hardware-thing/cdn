@@ -2,7 +2,7 @@
 extern crate rocket;
 
 use console::style;
-use rocket::{http::ContentType, response::Response, State};
+use rocket::{fairing::AdHoc, http::ContentType, response::Response, State};
 use rocket_contrib::serve;
 use std::{
     env,
@@ -100,6 +100,8 @@ fn rocket() -> rocket::Rocket {
         }
     }));
 
+    // Get the styles directory from ENV
+    // This variable is used in all `fs` manipulations
     let styles_dir = env::var_os("STYLES_DIR")
         .map(|dir| dir.to_str().map(|path| path.to_owned()))
         .flatten()
@@ -111,8 +113,12 @@ fn rocket() -> rocket::Rocket {
     let watcher_cache = cache.clone();
     thread::spawn(move || watcher::watch(styles_dir, watcher_cache));
 
+    // Take it to the moon!
     rocket::ignite()
         .mount("/v1", routes![css, list])
         .mount("/", serve::StaticFiles::from("./builder/dist/"))
         .manage(cache)
+        .attach(AdHoc::on_response("Caching headers", |_, res| Box::pin(async move {
+            res.set_header(ContentType::HTML);
+        })))
 }
