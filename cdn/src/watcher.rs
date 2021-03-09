@@ -11,7 +11,7 @@ pub fn watch(styles_dir: String, cache: Cache) {
         watcher(sender, Duration::from_secs(10)).expect("Could not start filesystem watcher.");
     watcher
         .watch(styles_dir.clone(), RecursiveMode::Recursive)
-        .expect("Could not start watcher.");
+        .expect("Could not start filesystem watcher.");
 
     loop {
         match receiver.recv() {
