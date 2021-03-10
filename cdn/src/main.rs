@@ -49,9 +49,8 @@ fn css(components: String, cache: State<'_, Cache>) -> Response {
 
     if let Ok(lock) = cache.try_read() {
         let mut css = String::new();
-        println!("{:?}", *lock);
+
         for file in files {
-            println!("{}", file);
             css += (*lock).get(file.as_str()).unwrap_or(&"".to_string());
         }
 
@@ -128,8 +127,8 @@ fn rocket() -> rocket::Rocket {
         .manage(cache)
         .attach(AdHoc::on_response("Caching headers", |_, res| {
             Box::pin(async move {
-                res.set_raw_header(CACHE_CONTROL.as_str(), "private; max-age=86400");
                 res.set_raw_header(ACCESS_CONTROL_ALLOW_ORIGIN.as_str(), "*");
+                res.set_raw_header(CACHE_CONTROL.as_str(), "private; max-age=86400");
                 res.set_raw_header("timing-allow-origin", "*");
             })
         }))
