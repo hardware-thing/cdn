@@ -2,7 +2,15 @@
 extern crate rocket;
 
 use console::style;
-use rocket::{fairing::AdHoc, http::ContentType, response::Response, State};
+use rocket::{
+    fairing::AdHoc,
+    http::{
+        hyper::header::{ACCESS_CONTROL_ALLOW_ORIGIN, CACHE_CONTROL},
+        ContentType,
+    },
+    response::Response,
+    State,
+};
 use rocket_contrib::serve;
 use std::{
     env,
@@ -118,7 +126,11 @@ fn rocket() -> rocket::Rocket {
         .mount("/v1", routes![css, list])
         .mount("/", serve::StaticFiles::from("./builder/dist/"))
         .manage(cache)
-        .attach(AdHoc::on_response("Caching headers", |_, res| Box::pin(async move {
-            res.set_header(ContentType::HTML);
-        })))
+        .attach(AdHoc::on_response("Caching headers", |_, res| {
+            Box::pin(async move {
+                res.set_raw_header(CACHE_CONTROL.as_str(), "private; max-age=86400");
+                res.set_raw_header(ACCESS_CONTROL_ALLOW_ORIGIN.as_str(), "*");
+                res.set_raw_header("timing-allow-origin", "*");
+            })
+        }))
 }
