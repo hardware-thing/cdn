@@ -23,9 +23,9 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Model "" [ "" ], Cmd.none )
+init : String -> ( Model, Cmd Msg )
+init url =
+    ( Model url [ "" ], Cmd.none )
 
 
 
@@ -50,4 +50,4 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    text "Ahojda"
+    text model.url
