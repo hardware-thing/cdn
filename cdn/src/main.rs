@@ -29,15 +29,23 @@ fn query_to_paths(components: String) -> Vec<String> {
     let fragments: Vec<String> = components.split(",").map(|file| file.to_string()).collect();
 
     for fragment in fragments {
-        if fragment.contains("|") {
-            if let [parent, subs] = fragment.rsplitn(2, ":").collect::<Vec<&str>>()[..] {
+        match fragment.rsplitn(2, ":").collect::<Vec<&str>>()[..] {
+            // Pipe branching at lower levels
+            [parent, subs] => {
                 for sub in subs.split("|") {
                     files.push(parent.to_string() + ":" + sub);
                 }
             }
-        } else {
-            files.push(fragment);
+            [path] => {
+                // Top-level pipe branching and normal filenames
+                for file in path.split("|") {
+                    files.push(file.to_string());
+                }
+            }
+            // Gibberish in, nothing out
+            _ => {}
         }
+        files.push(fragment);
     }
 
     files
