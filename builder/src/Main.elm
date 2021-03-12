@@ -1,10 +1,12 @@
 module Main exposing (main)
 
 import Browser
+import Dict
 import Html exposing (..)
 import Http
 
 
+main : Program String Model Msg
 main =
     Browser.element
         { init = init
@@ -25,6 +27,11 @@ type alias Model =
     , url : String
     , components : List String
     }
+
+
+type Includable
+    = Component String
+    | Group String (Dict String Includable)
 
 
 init : String -> ( Model, Cmd Msg )
