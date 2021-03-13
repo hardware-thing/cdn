@@ -54,7 +54,7 @@ type Msg
     = FetchList
     | GotList (Result Http.Error String)
     | UrlChanged
-    | AddComponent
+    | ToggleComponent (List String) Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,6 +80,11 @@ update msg model =
                     , Cmd.none
                     )
 
+        ToggleComponent at checked ->
+            ( { model | components = deepToggle at checked model.components }
+            , Cmd.none
+            )
+
         _ ->
             ( model, Cmd.none )
 
@@ -99,7 +104,6 @@ deserializeComponents list =
         |> List.foldl
             (String.split ":" >> deepInsert)
             (Component False Dict.empty)
-        |> Debug.log "parts"
 
 
 deepInsert : List String -> Component -> Component
@@ -132,13 +136,24 @@ deepInsert fragments (Component _ dict) =
                 dict
                 |> Component False
 
-        -- case Dict.get key dict of
-        --     Nothing ->
-        --         Dict.insert key (assign path (Component Dict.empty))
-        --     Just component ->
-        --         Dict.insert key (assign path component)
         _ ->
             Component False dict
+
+
+deepToggle : List String -> Bool -> Component -> Component
+deepToggle at checked (Component current dict) =
+    case at of
+        [ key ] ->
+            Component checked dict
+
+        key :: path ->
+            Dict.update key
+                (Maybe.map (deepToggle path checked))
+                dict
+                |> Component current
+
+        _ ->
+            Component current dict
 
 
 
