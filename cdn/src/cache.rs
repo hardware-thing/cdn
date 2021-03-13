@@ -28,7 +28,12 @@ pub fn compile(styles_dir: String) -> HashMap<String, String> {
         .filter_map(|file| {
             let filename = file.display().to_string();
 
-            if filename.starts_with("_") {
+            if file
+                .file_name()
+                .map(|filename| filename.to_string_lossy().to_string())
+                .unwrap_or("_".to_string())
+                .starts_with("_")
+            {
                 // Do not include module files
                 None
             } else if [".css", ".scss", ".sass"]
