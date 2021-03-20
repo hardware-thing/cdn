@@ -2,9 +2,11 @@ name: CDN
 
 on:
   push:
-    branches: [main]
+    paths:
+      - 'cdn/*'
   pull_request:
-    branches: [main]
+    paths:
+      - 'cdn/*'
 
 env:
   CARGO_TERM_COLOR: always
