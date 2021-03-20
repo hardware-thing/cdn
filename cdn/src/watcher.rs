@@ -9,6 +9,7 @@ pub fn watch(styles_dir: String, cache: Cache) {
 
     let mut watcher =
         watcher(sender, Duration::from_secs(10)).expect("Could not start filesystem watcher.");
+
     watcher
         .watch(styles_dir.clone(), RecursiveMode::Recursive)
         .expect("Could not start filesystem watcher.");
@@ -26,8 +27,10 @@ pub fn watch(styles_dir: String, cache: Cache) {
 }
 
 fn update_cache(styles_dir: String, cache: &Cache) {
+    let compiled = cache::compile(styles_dir.clone());
+
     match cache.try_write() {
-        Ok(mut lock) => *lock = cache::compile(styles_dir.clone()),
+        Ok(mut lock) => *lock = compiled,
         Err(_) => {}
     }
 }
