@@ -31,21 +31,20 @@ fn query_to_paths(components: String) -> Vec<String> {
     for fragment in fragments {
         match fragment.rsplitn(2, ":").collect::<Vec<&str>>()[..] {
             // Pipe branching at lower levels
-            [parent, subs] => {
+            [subs, parent] => {
                 for sub in subs.split("|") {
                     files.push(parent.to_string() + ":" + sub);
                 }
             }
+            // Top-level pipe branching and normal filenames
             [path] => {
-                // Top-level pipe branching and normal filenames
                 for file in path.split("|") {
                     files.push(file.to_string());
                 }
             }
-            // Gibberish in, nothing out
+            // Garbage in, garbage out
             _ => {}
         }
-        files.push(fragment);
     }
 
     files
@@ -140,4 +139,18 @@ fn rocket() -> rocket::Rocket {
                 res.set_raw_header("timing-allow-origin", "*");
             })
         }))
+}
+
+mod tests {
+    #[test]
+    fn test_query_to_paths() {
+        assert_eq!(
+            super::query_to_paths("button:primary".to_string()),
+            vec!["button:primary"]
+        );
+        assert_eq!(
+            super::query_to_paths("button:primary|secondary".to_string()),
+            vec!["button:primary", "button:secondary"]
+        );
+    }
 }
