@@ -7,6 +7,9 @@ on:
   push:
     paths:
       - 'builder/*'
+  pull_request:
+    paths:
+      - 'builder/*'
 
 jobs:
   build:
