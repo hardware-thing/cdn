@@ -6,7 +6,7 @@
   "author": "Michal Janočko",
   "license": "MIT",
   "scripts": {
-    "watch": "parcel watch index.html",
+    "dev": "parcel watch index.html",
     "build": "parcel build index.html"
   },
   "devDependencies": {
