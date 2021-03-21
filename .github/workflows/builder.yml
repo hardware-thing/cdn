@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 14.x
       - name: Build
-        working-directory: builder
+        working-directory: ./builder
         run: |
           yarn install
-          yarn build
+          yarn run build
