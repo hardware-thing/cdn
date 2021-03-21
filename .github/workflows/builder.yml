@@ -22,4 +22,5 @@ jobs:
         working-directory: ./builder
         run: |
           yarn install
+          yarn run dev
           yarn run build
