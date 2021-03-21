@@ -1,13 +1,13 @@
 name: URL Builder
 
 on:
+  workflow_dispatch: ~
   push:
     paths:
       - 'builder/*'
   pull_request:
     paths:
       - 'builder/*'
-  workflow_dispatch: ~
 
 jobs:
   build:
@@ -22,5 +22,4 @@ jobs:
         working-directory: ./builder
         run: |
           yarn install
-          yarn run dev
           yarn run build
