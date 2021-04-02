@@ -1,4 +1,5 @@
 use gitignore;
+use log::warn;
 use sass_rs::{self, Options, OutputStyle};
 use std::{
     collections::HashMap,
@@ -73,7 +74,7 @@ pub fn compile(styles_dir: String) -> HashMap<String, String> {
                     css,
                 );
             }
-            Err(error) => println!("{}", error),
+            Err(error) => warn!("Failed to compile this style file: {}", error),
         }
     }
 

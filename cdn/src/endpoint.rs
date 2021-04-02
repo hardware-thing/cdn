@@ -1,8 +1,10 @@
+use console::style;
+use log::{error, info};
 use rocket::{
     fairing::AdHoc,
     http::{
         hyper::header::{ACCESS_CONTROL_ALLOW_ORIGIN, CACHE_CONTROL},
-        ContentType,
+        ContentType, Status,
     },
     Response, State,
 };
@@ -53,8 +55,14 @@ fn css(components: String, cache: State<'_, Cache>) -> Response {
             .sized_body(css.len(), Cursor::new(css))
             .finalize()
     } else {
-        eprintln!("`css`: Cannot acquire `cache` RwLock; it might be poisoned.");
-        Response::build().finalize()
+        error!(
+            "'{}': Cannot acquire {} RwLock; it might be poisoned.",
+            style("css").bold(),
+            style("cache").bold()
+        );
+        Response::build()
+            .status(Status::InternalServerError)
+            .finalize()
     }
 }
 
@@ -70,14 +78,17 @@ fn list(cache: State<'_, Cache>) -> String {
             keys.join("\n")
         }
         Err(_) => {
-            println!("`list`: Could not acquire lock on cache");
+            error!(
+                "'{}': Could not acquire lock on cache",
+                style("list").bold()
+            );
             String::new()
         }
     }
 }
 
 pub fn serve(cache: Cache) -> rocket::Rocket {
-    println!("Serving the styles…");
+    info!("Serving the styles…");
     rocket::ignite()
         .mount("/v1", routes![css, list])
         .mount("/", serve::StaticFiles::from("./builder/dist/"))

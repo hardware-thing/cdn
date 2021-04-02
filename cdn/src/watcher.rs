@@ -1,4 +1,5 @@
 use console::style;
+use log::error;
 use notify::{watcher, RecursiveMode, Watcher};
 use std::{sync::mpsc::channel, time::Duration};
 
@@ -17,11 +18,7 @@ pub fn watch(styles_dir: String, cache: Cache) {
     loop {
         match receiver.recv() {
             Ok(_) => update_cache(styles_dir.clone(), &cache),
-            Err(error) => println!(
-                "{} {}",
-                style("File event error:").red().bold(),
-                style(error).red()
-            ),
+            Err(error) => error!("{} {}", style("File event error:").red().bold(), error),
         }
     }
 }
