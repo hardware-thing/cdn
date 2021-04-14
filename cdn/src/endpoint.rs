@@ -87,11 +87,10 @@ fn list(cache: State<'_, Cache>) -> String {
     }
 }
 
-pub fn serve(cache: Cache) -> rocket::Rocket {
+pub fn serve(cache: Cache, builder: bool) -> rocket::Rocket {
     info!("Serving the styles…");
-    rocket::ignite()
+    let mut server = rocket::ignite()
         .mount("/v1", routes![css, list])
-        .mount("/", serve::StaticFiles::from("./builder/dist/"))
         .manage(cache)
         .attach(AdHoc::on_response("Caching headers", |_, res| {
             Box::pin(async move {
@@ -99,7 +98,13 @@ pub fn serve(cache: Cache) -> rocket::Rocket {
                 res.set_raw_header(CACHE_CONTROL.as_str(), "private; max-age=86400");
                 res.set_raw_header("timing-allow-origin", "*");
             })
-        }))
+        }));
+
+    if builder {
+        server = server.mount("/", serve::StaticFiles::from("./builder/dist/"));
+    }
+
+    server
 }
 
 mod tests {

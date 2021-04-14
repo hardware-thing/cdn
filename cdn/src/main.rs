@@ -30,11 +30,12 @@ fn rocket() -> rocket::Rocket {
     let watcher_cache = cache.clone();
     thread::spawn(move || watcher::watch(styles_dir, watcher_cache));
 
+    let builder = env::var("NO_BUILDER")
+        .map(|no_builder| no_builder.as_str() != "1")
+        .unwrap_or(true);
+
     // Compile the URL builder frontend
-    if env::var("NO_BUILDER")
-        .map(|wants_builder| wants_builder.as_str() != "1")
-        .unwrap_or(true)
-    {
+    if builder {
         if !process::Command::new("yarn")
             .arg("build")
             .current_dir("./builder")
@@ -55,5 +56,5 @@ fn rocket() -> rocket::Rocket {
     };
 
     // Take it to the moon!
-    endpoint::serve(cache)
+    endpoint::serve(cache, builder)
 }
